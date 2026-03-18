@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🧟 Zombie Gin Zar v1.0 FINAL</title>
+    <meta name="description" content="Zombie survival game">
+    <meta name="theme-color" content="#1a3a1a">
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: linear-gradient(145deg, #0a1f0a 0%, #1a3a1a 50%, #0d280d 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 12px; margin: 0; overflow: hidden; }
+        #game, #admin-panel { width: 100%; max-width: 560px; height: 92vh; background: linear-gradient(180deg, rgba(25, 50, 25, 0.98) 0%, rgba(15, 35, 15, 0.98) 100%); backdrop-filter: blur(20px); border-radius: 42px; display: none; flex-direction: column; overflow: hidden; border: 3px solid #7fb07f; box-shadow: 0 25px 50px -8px rgba(0,0,0,0.8), inset 0 0 0 2px rgba(220,255,180,0.2), 0 0 60px rgba(127, 176, 127, 0.3); position: relative; z-index: 10; }
+        #admin-panel { display: none; }
+        #screen::-webkit-scrollbar { width: 6px; }
+        #screen::-webkit-scrollbar-track { background: #1f3a1f; border-radius: 3px; }
+        #screen::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #8bc34a, #4a7c2a); border-radius: 3px; }
+        #top-bar { background: linear-gradient(180deg, #1e3a1e 0%, #142814 100%); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; color: #e3f2d9; font-size: 18px; font-weight: 600; border-bottom: 3px solid #5f9f5f; text-shadow: 0 2px 4px rgba(0,0,0,0.5); flex-shrink: 0; }
+        #player-name { background: linear-gradient(145deg, #2b5a2b, #1e3a1e); padding: 8px 20px; border-radius: 40px; box-shadow: inset 0 2px 5px #142814, 0 3px 0 #0f200f, 0 0 20px rgba(127, 176, 127, 0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; border: 2px solid #4a7c2a; }
+        #currency-zombie { color: #ffdb7c; text-shadow: 0 0 10px rgba(255, 219, 124, 0.5); }
+        #currency-rainbow { color: #ffb3ff; margin-left: 12px; text-shadow: 0 0 10px rgba(255, 179, 255, 0.5); }
+        #fullscreen-btn { background: linear-gradient(145deg, #3f6f3f, #2b5a2b); border: 2px solid #7fb07f; color: #e3f2d9; font-size: 20px; padding: 8px 16px; border-radius: 30px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 4px 0 #1e3a1e; }
+        #fullscreen-btn:hover { background: linear-gradient(145deg, #4f7f4f, #3b6e3b); transform: translateY(-2px); box-shadow: 0 6px 0 #1e3a1e; }
+        #tabs { display: flex; background: linear-gradient(180deg, #1f3a1f 0%, #142814 100%); padding: 10px 8px; gap: 8px; overflow-x: auto; border-bottom: 3px solid #5f9f5f; flex-shrink: 0; scrollbar-width: none; }
+        #tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { flex: 1; min-width: 45px; background: linear-gradient(145deg, #325a32, #234523); border: 2px solid #4a7c2a; color: #cfedc0; padding: 12px 0; font-size: 22px; font-weight: 600; border-radius: 36px; cursor: pointer; transition: all 0.2s; box-shadow: 0 5px 0 #142814, 0 0 15px rgba(74, 124, 42, 0.2); }
+        .tab-btn.active { background: linear-gradient(145deg, #7fb07f, #5f9f5f); color: #142814; transform: translateY(-3px); box-shadow: 0 8px 0 #2b5a2b, 0 0 25px rgba(127, 176, 127, 0.5); border-color: #a3d8a3; }
+        #screen { flex: 1; padding: 20px 18px; overflow-y: auto; color: #f0ffe0; position: relative; }
+        .screen { display: none; height: 100%; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .screen.active { display: block; }
+        .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin: 16px 0; }
+        .item-card { background: linear-gradient(145deg, #2d4d2d, #1f3a1f); border: 2px solid #7fb07f; border-radius: 24px; padding: 18px 12px; text-align: center; box-shadow: 0 8px 0 #143014, inset 0 0 15px rgba(163, 216, 163, 0.2), 0 0 20px rgba(127, 176, 127, 0.1); display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s; }
+        .item-card:hover { transform: translateY(-3px); box-shadow: 0 12px 0 #143014, inset 0 0 15px rgba(163, 216, 163, 0.3), 0 0 30px rgba(127, 176, 127, 0.2); }
+        .item-card button { background: linear-gradient(145deg, #8bc34a, #6a9f3a); border: none; color: #142814; font-weight: bold; padding: 12px 18px; border-radius: 30px; margin-top: 12px; width: 100%; font-size: 15px; cursor: pointer; box-shadow: 0 5px 0 #4a7c2a, 0 0 15px rgba(139, 195, 74, 0.3); transition: all 0.15s; }
+        .item-card button:active { transform: translateY(3px); box-shadow: 0 2px 0 #3d6b3d; }
+        .item-card button:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+        .repair-btn { background: linear-gradient(145deg, #e6c45f, #c4a040) !important; color: #1f3a1f !important; box-shadow: 0 5px 0 #b38f40 !important; }
+        .mode-btn { background: linear-gradient(145deg, #4f794f, #3d663d); border: 3px solid #b3e0b3; color: #f6ffe6; font-size: 22px; font-weight: bold; padding: 24px 16px; margin: 16px 0; border-radius: 60px; width: 100%; cursor: pointer; box-shadow: 0 10px 0 #2a512a, inset 0 2px 20px rgba(181, 230, 181, 0.3), 0 0 25px rgba(79, 121, 79, 0.4); text-shadow: 0 2px 3px #0a1f0a; transition: all 0.2s; }
+        .mode-btn:active { transform: scale(0.97); box-shadow: 0 5px 0 #2a512a; }
+        .mode-btn:hover { box-shadow: 0 10px 0 #2a512a, inset 0 2px 20px rgba(181, 230, 181, 0.5), 0 0 40px rgba(79, 121, 79, 0.6); }
+        .back-btn { background: linear-gradient(145deg, #7f5f5f, #5f4545); border: 2px solid #cf9f9f; color: #ffefef; padding: 14px 26px; border-radius: 36px; font-weight: bold; margin-bottom: 20px; cursor: pointer; box-shadow: 0 6px 0 #5a3f3f, 0 0 20px rgba(127, 95, 95, 0.3); transition: all 0.2s; }
+        .back-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #4a3030; }
+        .attack-btn { background: linear-gradient(145deg, #bf4f4f, #9f3f3f); border: 3px solid #ff7f7f; color: #fff3e0; font-size: 32px; padding: 26px; border-radius: 60px; width: 100%; font-weight: 800; margin: 20px 0; cursor: pointer; box-shadow: 0 12px 0 #7f2f2f, 0 0 40px rgba(191, 79, 79, 0.5); text-shadow: 0 3px 3px #300; transition: all 0.15s; }
+        .attack-btn:active { transform: translateY(5px); box-shadow: 0 5px 0 #5f1f1f; }
+        .attack-btn:disabled { background: linear-gradient(145deg, #555, #444); box-shadow: none; cursor: not-allowed; border-color: #666; }
+        .weapon-selector { display: flex; overflow-x: auto; gap: 14px; padding: 14px 0; scroll-snap-type: x mandatory; margin-bottom: 15px; scrollbar-width: thin; }
+        .weapon-selector::-webkit-scrollbar { height: 6px; }
+        .weapon-selector::-webkit-scrollbar-thumb { background: #4a7c2a; border-radius: 3px; }
+        .weapon-option { flex: 0 0 auto; width: 140px; background: linear-gradient(145deg, #3d663d, #2d4d2d); border: 2px solid #a6d8a6; border-radius: 40px; padding: 16px 8px; text-align: center; font-weight: 600; cursor: pointer; box-shadow: 0 5px 0 #1e3a1e, 0 0 15px rgba(166, 216, 166, 0.2); color: #eaffdc; scroll-snap-align: start; font-size: 14px; transition: all 0.2s; position: relative; overflow: hidden; }
+        .weapon-option:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #1e3a1e, 0 0 25px rgba(166, 216, 166, 0.4); }        .weapon-option.selected { background: linear-gradient(145deg, #b8e0a0, #8bc34a); color: #142814; border-color: #fff6b0; box-shadow: 0 5px 0 #6b9e6b, 0 0 30px rgba(184, 224, 160, 0.6); }
+        .weapon-option.cooldown { opacity: 0.5; pointer-events: none; }
+        .weapon-option .cooldown-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(191, 79, 79, 0.7); transition: height 0.1s linear; }
+        .weapon-option .cooldown-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: bold; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); display: none; }
+        .weapon-option.cooldown .cooldown-text { display: block; }
+        .glass-panel { background: linear-gradient(145deg, rgba(35, 60, 35, 0.8), rgba(25, 45, 25, 0.8)); backdrop-filter: blur(15px); border: 2px solid #9fcf9f; border-radius: 36px; padding: 24px; margin: 20px 0; box-shadow: 0 15px 30px -8px rgba(0,0,0,0.6), inset 0 0 20px rgba(159, 207, 159, 0.1), 0 0 30px rgba(127, 176, 127, 0.15); }
+        .trade-button { background: linear-gradient(145deg, #7fb07f, #5f9f5f); border: 2px solid #9fcf9f; color: #142814; font-weight: bold; padding: 18px; border-radius: 50px; width: 100%; font-size: 18px; margin: 12px 0; cursor: pointer; box-shadow: 0 7px 0 #3d6b3d, 0 0 20px rgba(127, 176, 127, 0.3); transition: all 0.15s; }
+        .trade-button:active { transform: translateY(4px); box-shadow: 0 3px 0 #2d5b2d; }
+        .trade-button.danger { background: linear-gradient(145deg, #bf4f4f, #9f3f3f); color: #fff; box-shadow: 0 7px 0 #7f2f2f, 0 0 20px rgba(191, 79, 79, 0.3); border-color: #ff7f7f; }
+        .trade-button.success { background: linear-gradient(145deg, #4f7f4f, #3d6b3d); color: #fff; box-shadow: 0 7px 0 #2f4f2f, 0 0 20px rgba(79, 127, 79, 0.3); border-color: #7fb07f; }
+        .trade-button.warning { background: linear-gradient(145deg, #b38f40, #9f7f30); color: #fff; box-shadow: 0 7px 0 #7f5f2f, 0 0 20px rgba(179, 143, 64, 0.3); border-color: #e6c45f; }
+        .trade-input { background: linear-gradient(145deg, #1e3a1e, #142814); border: 2px solid #7fb07f; border-radius: 40px; padding: 16px 20px; color: #f0ffe0; font-size: 16px; width: 100%; margin: 10px 0; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); }
+        .trade-input:focus { outline: none; border-color: #a3d8a3; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 0 20px rgba(127, 176, 127, 0.3); }
+        .message-box { background: linear-gradient(145deg, #263f26, #1e3a1e); border: 2px solid #b0d6a0; border-radius: 28px; padding: 18px; margin: 12px 0; color: #eaffdc; font-weight: 500; word-break: break-word; max-height: 150px; overflow-y: auto; box-shadow: inset 0 0 20px rgba(176, 214, 160, 0.1); }
+        .log-entry { font-size: 12px; padding: 6px 0; border-bottom: 1px solid #3f5f3f; }
+        .log-entry:last-child { border-bottom: none; }
+        .log-time { color: #8bc34a; }
+        .log-action { color: #ffdb7c; font-weight: 600; }
+        .profile-avatar { font-size: 80px; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.5)); display: block; margin: 0 auto 15px; text-align: center; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .avatar-selector { display: flex; justify-content: center; gap: 15px; margin: 15px 0; }
+        .avatar-option { font-size: 45px; cursor: pointer; padding: 8px; border-radius: 50%; transition: all 0.2s; background: rgba(59, 110, 59, 0.3); }
+        .avatar-option:hover { transform: scale(1.1); }
+        .avatar-option.selected { background: linear-gradient(145deg, #3b6e3b, #2d5a2d); border: 3px solid gold; box-shadow: 0 0 25px rgba(255, 215, 0, 0.5); }
+        .achievement-badge { display: inline-block; background: linear-gradient(145deg, #3b6e3b, #2d5a2d); border-radius: 40px; padding: 10px 18px; margin: 6px; border: 2px solid gold; font-weight: bold; font-size: 14px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+        .stat-row { display: flex; justify-content: space-between; background: linear-gradient(145deg, #1e3a1e, #142814); padding: 14px 22px; border-radius: 40px; margin: 10px 0; font-size: 16px; border: 1px solid #3f5f3f; }
+        .admin-row { display: flex; gap: 10px; margin: 12px 0; align-items: center; flex-wrap: wrap; }
+        .admin-row button { flex: 0 0 auto; padding: 10px 18px; font-size: 14px; }
+        .admin-row input { flex: 1; min-width: 120px; }
+        .banned { filter: grayscale(1); pointer-events: none; opacity: 0.6; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+        .player-list-item { background: linear-gradient(145deg, #1e3a1e, #142814); border-radius: 20px; padding: 12px 15px; margin: 6px 0; cursor: pointer; display: flex; justify-content: space-between; border: 1px solid #5f9f5f; transition: all 0.2s; }
+        .player-list-item:hover { background: linear-gradient(145deg, #2b5a2b, #1e3a1e); border-color: #7fb07f; transform: translateX(5px); }
+        .daily-task-item { background: linear-gradient(145deg, #1e3a1e, #142814); border-radius: 18px; padding: 14px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; border: 1px solid #7fb07f; transition: all 0.2s; }
+        .daily-task-item.completed { opacity: 0.6; background: linear-gradient(145deg, #2a4a2a, #1e3a1e); border-color: #4a7c2a; }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(145deg, #0a1f0a 0%, #1a3a1a 100%); color: #8bc34a; font-size: 28px; font-weight: bold; display: flex; justify-content: center; align-items: center; z-index: 10000; flex-direction: column; gap: 25px; }
+        #loader.hidden { display: none !important; }
+        .loader-spinner { width: 60px; height: 60px; border: 5px solid rgba(127, 176, 127, 0.3); border-top: 5px solid #8bc34a; border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 30px rgba(139, 195, 74, 0.5); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-text { text-align: center; text-shadow: 0 0 20px rgba(139, 195, 74, 0.5); }
+        .loader-version { font-size: 16px; color: #7fb07f; margin-top: 10px; font-weight: bold; }
+        .db-status { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: linear-gradient(145deg, #1e3a1e, #142814); border-radius: 25px; margin: 12px 0; font-size: 15px; border: 2px solid #4f7f4f; }
+        .db-status.online { border-color: #4f7f4f; }
+        .db-status.offline { border-color: #7f4f4f; }
+        .db-indicator { width: 12px; height: 12px; border-radius: 50%; background: #4f7f4f; animation: pulse 2s infinite; box-shadow: 0 0 10px rgba(79, 127, 79, 0.8); }
+        .db-status.offline .db-indicator { background: #7f4f4f; animation: none; box-shadow: 0 0 10px rgba(127, 79, 79, 0.8); }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.9); } }
+        .export-import-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
+        .hidden-file-input { display: none; }
+        .version-info { font-size: 13px; color: #8bc34a; text-align: center; padding: 12px; background: linear-gradient(145deg, #1e3a1e, #142814); border-radius: 25px; margin: 15px 0; border: 1px solid #4a7c2a; }        .error-message { background: linear-gradient(145deg, #7f2f2f, #5f1f1f); border: 3px solid #bf4f4f; color: #fff; padding: 30px; border-radius: 25px; text-align: center; margin: 30px; box-shadow: 0 0 40px rgba(191, 79, 79, 0.5); }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: linear-gradient(145deg, #2d4d2d, #1f3a1f); border: 2px solid #7fb07f; color: #e3f2d9; padding: 16px 30px; border-radius: 30px; font-weight: 600; z-index: 10001; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 30px rgba(127, 176, 127, 0.3); transition: transform 0.4s ease; max-width: 90%; text-align: center; }
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        .notification.success { border-color: #4f7f4f; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 30px rgba(79, 127, 79, 0.5); }
+        .notification.error { border-color: #7f4f4f; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 30px rgba(127, 79, 79, 0.5); }
+        h2 { color: #8bc34a; text-shadow: 0 0 20px rgba(139, 195, 74, 0.3); margin-bottom: 20px; font-size: 26px; }
+        h3 { color: #a3d8a3; margin-bottom: 15px; font-size: 20px; }
+        strong { color: #e3f2d9; font-size: 15px; }
+        .zombie-stats { text-align: center; margin: 20px 0; padding: 20px; background: linear-gradient(145deg, rgba(59, 110, 59, 0.3), rgba(39, 70, 39, 0.3)); border-radius: 25px; border: 2px solid #5f9f5f; }
+        .zombie-stats h2 { font-size: 28px; margin-bottom: 10px; color: #ff7f7f; }
+        .zombie-stats p { font-size: 18px; margin: 5px 0; }
+        .battle-timer { font-size: 24px; color: #ffdb7c; text-align: center; margin: 10px 0; font-weight: bold; }
+        .durability-bar { height: 8px; background: #1f3a1f; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+        .durability-fill { height: 100%; background: linear-gradient(90deg, #8bc34a, #4a7c2a); border-radius: 4px; transition: width 0.3s; }
+        .durability-fill.low { background: linear-gradient(90deg, #bf4f4f, #9f3f3f); }
+        .durability-fill.medium { background: linear-gradient(90deg, #e6c45f, #c4a040); }
+        .unit-info { font-size: 12px; color: #a3d8a3; margin: 8px 0; }
+        .unit-price { font-size: 14px; font-weight: bold; color: #ffdb7c; margin: 5px 0; }
+    </style>
+</head>
+<body>
+
+<div id="loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">
+        <div>🧟 Zombie Gin Zar</div>
+        <div class="loader-version">v1.0 FINAL</div>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
+<div id="error-container"></div>
+<div id="game"></div>
+<div id="admin-panel"></div>
+
+<script>
+// ============================================
+// 🎮 ZOMBIE GIN ZAR v1.0 FINAL
+// ============================================
+
+const VERSION = '1.0 FINAL';
+const SAVE_VERSION = 1;
+const STORAGE_KEY = 'zgz_save_v' + SAVE_VERSION;
+const ADMIN_STORAGE_KEY = 'zgz_admin';
+const LOGS_KEY = 'zgz_logs';
+const PLAYERS_PREFIX = 'zgz_player_';
+const ADMIN_PASSWORD = '9260ai91';
+
+// Flag to prevent multiple initializations
+let gameInitialized = false;
+// ========== STORAGE ==========
+const Storage = {
+    available: true,
+    data: {},
+    init() {
+        try {
+            localStorage.setItem('_test_', '1');
+            localStorage.removeItem('_test_');
+            this.available = true;
+            console.log('✅ localStorage available');
+        } catch(e) { 
+            this.available = false;
+            console.log('ℹ️ Using memory storage (CodeRun IDE)');
+        }
+    },
+    set(k, v) { 
+        try { 
+            if(this.available) localStorage.setItem(k,v); 
+            this.data[k]=v; 
+            return true; 
+        } catch(e) { 
+            this.data[k]=v; 
+            return false; 
+        } 
+    },
+    get(k, d=null) { 
+        try { 
+            if(this.available) return localStorage.getItem(k); 
+            return this.data[k]||d; 
+        } catch(e) { 
+            return this.data[k]||d; 
+        } 
+    },
+    remove(k) { 
+        try { 
+            if(this.available) localStorage.removeItem(k); 
+            delete this.data[k]; 
+        } catch(e) { 
+            delete this.data[k]; 
+        } 
+    }
+};
+
+// ========== LOGGER ==========
+const Logger = {
+    logs: [],
+    init() { 
+        try { 
+            const s=Storage.get(LOGS_KEY);             if(s) this.logs=JSON.parse(s); 
+        } catch(e){} 
+    },
+    add(a,d='') { 
+        this.logs.unshift({t:Date.now(),a,d,p:window.player?.id||'?'}); 
+        if(this.logs.length>500)this.logs.pop(); 
+        this.save(); 
+    },
+    save() { Storage.set(LOGS_KEY, JSON.stringify(this.logs)); },
+    clear() { this.logs=[]; this.save(); },
+    render(c) { 
+        if(!c)return; 
+        c.innerHTML=this.logs.slice(0,50).map(l=>`<div class="log-entry"><span class="log-time">[${new Date(l.t).toLocaleString('ru-RU')}]</span> <span class="log-action">${l.a}</span>: ${l.d}</div>`).join('')||'<p style="text-align:center;color:#8bc34a;">Нет логов</p>'; 
+    }
+};
+
+// ========== NOTIFICATION ==========
+function notify(msg, type='success') {
+    const n = document.getElementById('notification');
+    if(!n) return;
+    n.textContent = msg;
+    n.className = 'notification ' + type + ' show';
+    setTimeout(() => n.classList.remove('show'), 3000);
+}
+
+// ========== GLOBAL ==========
+let player = null;
+let adminData = { bannedIds: [], testers: [], dbEnabled: true };
+let battle = { 
+    mode:null, 
+    zombies:[], 
+    baseHp:5000, 
+    curIdx:0, 
+    selWeapon:null, 
+    wave:0, 
+    lastAttack:{}, 
+    cooldownIntervals:{},
+    timeLeft:60,
+    timerInterval:null
+};
+
+// ========== INIT ==========
+function startGame() {
+    // Prevent multiple initializations
+    if(gameInitialized) {
+        console.log('⚠️ Game already initialized');
+        return;
+    }
+    gameInitialized = true;
+        console.log('🎮 Starting Zombie Gin Zar v' + VERSION);
+    
+    Storage.init();
+    Logger.init();
+    
+    // Миграция
+    ['zgz_save','zgz_save_v1'].forEach(k=>{
+        try {
+            const d = Storage.get(k);
+            if(d) { 
+                Storage.set(STORAGE_KEY, d); 
+                Storage.remove(k); 
+                Logger.add('MIGRATE',k); 
+            }
+        } catch(e){}
+    });
+    
+    // Скрываем загрузчик через 800мс
+    setTimeout(() => {
+        const loader = document.getElementById('loader');
+        if(loader) loader.classList.add('hidden');
+    }, 800);
+    
+    try {
+        init();
+        console.log('✅ Game loaded successfully');
+    } catch(e) {
+        console.error('❌ Error:', e);
+        document.getElementById('loader').classList.add('hidden');
+        document.getElementById('error-container').innerHTML = '<div class="error-message"><h2>❌ Ошибка</h2><p>'+e.message+'</p><button onclick="location.reload()" class="trade-button" style="margin-top:20px;">Обновить</button></div>';
+    }
+}
+
+// ========== MAIN INIT ==========
+function init() {
+    const gameDiv = document.getElementById('game');
+    const adminDiv = document.getElementById('admin-panel');
+    if(!gameDiv || !adminDiv) throw new Error('Containers not found');
+    
+    // Check admin
+    let isAdmin = false;
+    try {
+        const url = new URLSearchParams(window.location.search);
+        isAdmin = url.get('admin') === ADMIN_PASSWORD;
+    } catch(e){}
+    
+    // Default player
+    const DEFAULT = {
+        id: '', 
+        name: 'Gin Zar',         avatar: '🧟', 
+        money: 1000, 
+        rainbowMoney: 0,
+        weapons: [{name:'Нож кухонный', durability:-1, skin:null}],
+        units: [],
+        zombieKills: {'Зомби-страх':0,'Зомби-силач':0,'Зомби-хакер':0,'Зомби-невидимка':0,'Зомби-прыгун':0,'Зомби-скелет':0,'Big Zombie':0},
+        totalKills: 0, 
+        level: 1, 
+        exp: 0, 
+        prestigeBonus: 0, 
+        maxWave: 0,
+        usedPromos: [], 
+        achievements: [], 
+        dailyTasks: [], 
+        lastDailyReset: 0, 
+        lastDailyBonus: 0,
+        playTime: 0, 
+        renamedWeapons: {}, 
+        isTester: false, 
+        isBanned: false,
+        createdAt: Date.now(), 
+        lastLogin: Date.now(), 
+        saveVersion: SAVE_VERSION
+    };
+    
+    // Load player
+    try {
+        const saved = Storage.get(STORAGE_KEY);
+        if(saved) {
+            const data = JSON.parse(saved);
+            player = {...DEFAULT, ...data};
+            if(!player.id) player.id = 'p_'+Math.random().toString(36).substr(2,10);
+            player.zombieKills = {...DEFAULT.zombieKills, ...(data.zombieKills||{})};
+            player.usedPromos = Array.isArray(data.usedPromos)?data.usedPromos:[];
+            player.units = Array.isArray(data.units)?data.units:[];
+            player.achievements = Array.isArray(data.achievements)?data.achievements:[];
+            player.dailyTasks = Array.isArray(data.dailyTasks)?data.dailyTasks:[];
+            player.renamedWeapons = data.renamedWeapons||{};
+            player.weapons = Array.isArray(data.weapons)&&data.weapons.length?data.weapons:[{name:'Нож кухонный',durability:-1,skin:null}];
+            player.weapons = player.weapons.map(w=>typeof w==='string'?{name:w,durability:-1,skin:null}:{...w,skin:w.skin||null});
+            if(!player.weapons.some(w=>w.name==='Нож кухонный')) player.weapons.push({name:'Нож кухонный',durability:-1,skin:null});
+            player.lastLogin = Date.now();
+        } else {
+            player = JSON.parse(JSON.stringify(DEFAULT));
+            player.id = 'p_'+Math.random().toString(36).substr(2,10);
+        }
+    } catch(e) {
+        console.warn('Save corrupted');
+        player = JSON.parse(JSON.stringify(DEFAULT));
+        player.id = 'p_'+Math.random().toString(36).substr(2,10);    }
+    
+    window.player = player;
+    
+    // Admin data
+    try { 
+        const a=Storage.get(ADMIN_STORAGE_KEY); 
+        if(a) adminData=JSON.parse(a); 
+    } catch(e){}
+    
+    function saveAdmin() { 
+        try{Storage.set(ADMIN_STORAGE_KEY,JSON.stringify(adminData));}catch(e){} 
+    }
+    
+    player.isBanned = adminData.bannedIds.includes(player.id);
+    player.isTester = adminData.testers.includes(player.id);
+    
+    // Tester weapon
+    if(player.isTester && !player.weapons.some(w=>w.name==='Молот тестера')) {
+        player.weapons.push({name:'Молот тестера',durability:-1,skin:null});
+    } else if(!player.isTester) {
+        player.weapons = player.weapons.filter(w=>w.name!=='Молот тестера');
+    }
+    
+    // Save function
+    function save() {
+        player.playTime++;
+        player.lastLogin = Date.now();
+        try {
+            Storage.set(STORAGE_KEY, JSON.stringify(player));
+            Storage.set(PLAYERS_PREFIX+player.id, JSON.stringify(player));
+        } catch(e){}
+    }
+    setInterval(save, 2000);
+    window.addEventListener('beforeunload', save);
+    
+    // Player DB
+    function getAllPlayers() {
+        const list = [];
+        try {
+            for(let i=0;i<localStorage.length;i++) {
+                const k = localStorage.key(i);
+                if(k && k.startsWith(PLAYERS_PREFIX)) {
+                    try { 
+                        const d=JSON.parse(localStorage.getItem(k)); 
+                        if(d&&d.id&&d.name) list.push(d); 
+                    } catch(e){}
+                }
+            }
+        } catch(e){}        if(player&&player.id && !list.some(p=>p.id===player.id)) list.push(player);
+        return list;
+    }
+    
+    function getPlayerById(id) {
+        try {
+            for(let i=0;i<localStorage.length;i++) {
+                const k = localStorage.key(i);
+                if(k && (k===STORAGE_KEY || k.startsWith(PLAYERS_PREFIX))) {
+                    try { 
+                        const d=JSON.parse(localStorage.getItem(k)); 
+                        if(d&&d.id===id) return {data:d,key:k}; 
+                    } catch(e){}
+                }
+            }
+        } catch(e){}
+        return null;
+    }
+    
+    // Game constants
+    const WEAPONS = [
+        {name:'Нож кухонный',priceZ:0,priceR:0,damage:10,maxDur:-1,limited:false,cd:1000},
+        {name:'Мачете',priceZ:300,priceR:0,damage:50,maxDur:100,limited:false,cd:3000},
+        {name:'Топор',priceZ:1000,priceR:0,damage:100,maxDur:150,limited:false,cd:2000},
+        {name:'Пистолет глок',priceZ:5000,priceR:0,damage:500,maxDur:200,limited:false,cd:2000},
+        {name:'Пистолет дигл',priceZ:8000,priceR:0,damage:600,maxDur:250,limited:false,cd:3000},
+        {name:'Автомат Калашникова',priceZ:16000,priceR:0,damage:900,maxDur:300,limited:false,cd:2000},
+        {name:'Сюрикены',priceZ:30000,priceR:0,damage:1300,maxDur:350,limited:false,cd:1000},
+        {name:'Дробовик',priceZ:50000,priceR:0,damage:3000,maxDur:200,limited:false,cd:2000},
+        {name:'Пулемёт',priceZ:80000,priceR:0,damage:5000,maxDur:400,limited:false,cd:2000},
+        {name:'РПГ',priceZ:1200000,priceR:0,damage:20000,maxDur:500,limited:false,cd:3000},
+        {name:'Миниган',priceZ:1650000,priceR:0,damage:25000,maxDur:12000,limited:false,cd:2000},
+        {name:'Радужный дробовик',priceZ:0,priceR:100,damage:35000,maxDur:25000,limited:true,cd:2000},
+        {name:'Драконий меч',priceZ:0,priceR:150,damage:25000,maxDur:30000,limited:true,cd:3000},
+        {name:'Меч молнии',priceZ:0,priceR:185,damage:100000,maxDur:65000,limited:true,cd:3000}
+    ];
+    
+    const TESTER_HAMMER = {name:'Молот тестера',damage:999999,maxDur:-1,cd:0};
+    
+    const ZOMBIES = [
+        {name:'Зомби-страх',hp:100,dmg:30,reward:10},
+        {name:'Зомби-силач',hp:500,dmg:100,reward:30},
+        {name:'Зомби-хакер',hp:1000,dmg:300,reward:65},
+        {name:'Зомби-невидимка',hp:5000,dmg:1000,reward:100},
+        {name:'Big Zombie',hp:100000,dmg:5000,reward:1000}
+    ];
+    
+    const UNITS = [
+        {name:'Инженер',priceZ:100000,priceR:0,desc:'Чинит оружие раз в минуту'},
+        {name:'Саня механик',priceZ:0,priceR:100,desc:'Чинит + урон 1000'}    ];
+    
+    const PROMOS = {
+        'KWLX927':{type:'money',val:5000},
+        'LSKBAOW':{type:'money',val:11111},
+        'MAGXWZ':{type:'money',val:30000},
+        'KQVDEW':{type:'weapon',val:'Пулемёт'},
+        'KEBWL826':{type:'rainbow',val:100}
+    };
+    
+    // Export/Import
+    function exportDB() {
+        const db = {version:SAVE_VERSION,date:Date.now(),players:getAllPlayers(),logs:Logger.logs,admin:adminData};
+        const blob = new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ZGZ_Backup_'+new Date().toISOString().split('T')[0]+'.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        Logger.add('EXPORT','Database exported');
+        notify('✅ База экспортирована!','success');
+    }
+    
+    function importDB(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const db = JSON.parse(e.target.result);
+                if(db.players&&Array.isArray(db.players)) {
+                    db.players.forEach(p=>{if(p.id)Storage.set(PLAYERS_PREFIX+p.id,JSON.stringify(p));});
+                    Logger.add('IMPORT','Imported '+db.players.length+' players');
+                    notify('✅ Импортировано '+db.players.length+' игроков!','success');
+                }
+            } catch(err) { notify('❌ Ошибка: '+err.message,'error'); }
+        };
+        reader.readAsText(file);
+    }
+    
+    // Cooldown system
+    function startCooldown(weaponName, cooldownMs, callback) {
+        if(battle.cooldownIntervals[weaponName]) {
+            clearInterval(battle.cooldownIntervals[weaponName]);
+        }
+        
+        const startTime = Date.now();
+        const endTime = startTime + cooldownMs;
+                battle.cooldownIntervals[weaponName] = setInterval(() => {
+            const now = Date.now();
+            const remaining = Math.max(0, endTime - now);
+            
+            const weaponEl = document.querySelector(`[data-wep="${weaponName}"]`);
+            if(weaponEl) {
+                const overlay = weaponEl.querySelector('.cooldown-overlay');
+                const text = weaponEl.querySelector('.cooldown-text');
+                if(overlay) {
+                    const percent = (remaining / cooldownMs) * 100;
+                    overlay.style.height = percent + '%';
+                }
+                if(text) {
+                    text.textContent = (remaining / 1000).toFixed(1) + 'с';
+                }
+                weaponEl.classList.add('cooldown');
+            }
+            
+            if(remaining <= 0) {
+                clearInterval(battle.cooldownIntervals[weaponName]);
+                delete battle.cooldownIntervals[weaponName];
+                
+                if(weaponEl) {
+                    const overlay = weaponEl.querySelector('.cooldown-overlay');
+                    if(overlay) overlay.style.height = '0%';
+                    weaponEl.classList.remove('cooldown');
+                }
+                
+                if(callback) callback();
+            }
+        }, 100);
+    }
+    
+    function isOnCooldown(weaponName) {
+        return battle.cooldownIntervals[weaponName] !== undefined;
+    }
+    
+    function clearAllCooldowns() {
+        Object.keys(battle.cooldownIntervals).forEach(key => {
+            clearInterval(battle.cooldownIntervals[key]);
+        });
+        battle.cooldownIntervals = {};
+    }
+    
+    // ========== RENDER ==========
+    gameDiv.innerHTML = '';
+    adminDiv.innerHTML = '';
+    
+    if(isAdmin) {
+        adminDiv.style.display = 'flex';        gameDiv.style.display = 'none';
+        renderAdmin();
+    } else {
+        if(player.isBanned) {
+            gameDiv.style.display = 'flex';
+            gameDiv.innerHTML = '<div class="glass-panel" style="text-align:center;padding:40px;display:flex;flex-direction:column;justify-content:center;height:100%;"><h1 style="color:#bf4f4f;font-size:36px;margin-bottom:20px;">⛔ ВЫ ЗАБАНЕНЫ</h1><p style="margin-top:10px;">Обратитесь к администратору</p><p style="margin-top:20px;font-size:12px;opacity:0.7;">ID: '+player.id+'</p></div>';
+        } else {
+            gameDiv.style.display = 'flex';
+            renderGame();
+        }
+    }
+    
+    // ========== GAME UI ==========
+    function renderGame() {
+        gameDiv.innerHTML = `
+            <div id="top-bar">
+                <span id="player-name">${player.name}</span>
+                <span><span id="currency-zombie">💰 <span id="money">${player.money}</span></span><span id="currency-rainbow">🌈 <span id="rainbow-money">${player.rainbowMoney}</span></span></span>
+                <button id="fullscreen-btn">⛶</button>
+            </div>
+            <div id="tabs">
+                <button class="tab-btn active" data-tab="main">🏠</button>
+                <button class="tab-btn" data-tab="shop">🛒</button>
+                <button class="tab-btn" data-tab="limited">✨</button>
+                <button class="tab-btn" data-tab="inventory">🎒</button>
+                <button class="tab-btn" data-tab="units">⚙️</button>
+                <button class="tab-btn" data-tab="promo">🎁</button>
+                <button class="tab-btn" data-tab="profile">👤</button>
+            </div>
+            <div id="screen">
+                <div id="main-screen" class="screen active">
+                    <button class="mode-btn" data-mode="kill25">🔫 Убей 25</button>
+                    <button class="mode-btn" data-mode="farm">💰 Фарм (15000)</button>
+                    <button class="mode-btn" data-mode="tower">🛡️ Tower Defense</button>
+                    <button class="mode-btn" data-mode="randomZombie">🎲 Рандом зомби</button>
+                    <button class="mode-btn" data-mode="60seconds">⏱️ 60 секунд</button>
+                    <div class="glass-panel" style="text-align:center;">
+                        <span>Уровень <span id="player-level">${player.level}</span> • Опыт <span id="player-exp">${player.exp}</span>/<span id="next-level-exp">${player.level*100}</span></span>
+                        <div style="height:15px;background:#1f3a1f;border-radius:20px;margin:15px 0;overflow:hidden;">
+                            <div id="exp-bar" style="height:100%;width:${(player.exp/(player.level*100))*100}%;background:linear-gradient(90deg,#8bc34a,#4a7c2a);border-radius:20px;"></div>
+                        </div>
+                        <button id="prestige-btn" class="trade-button" style="margin-top:15px;">🌟 Престиж (10 ур.)</button>
+                    </div>
+                </div>
+                <div id="shop-screen" class="screen"><h2>🛒 Магазин</h2><div id="weapon-shop" class="grid-list"></div></div>
+                <div id="limited-screen" class="screen"><h2>✨ Лимитированный</h2><div id="limited-shop" class="grid-list"></div></div>
+                <div id="inventory-screen" class="screen"><h2>🎒 Инвентарь</h2><div id="inventory-list" class="grid-list"></div></div>
+                <div id="units-screen" class="screen"><h2>⚙️ Юниты</h2><div id="units-shop" class="grid-list"></div></div>
+                <div id="promo-screen" class="screen"><h2>🎁 Промокоды</h2><input type="text" id="promo-code" placeholder="Введите код" class="trade-input"><button id="apply-promo" class="trade-button">Активировать</button><div id="promo-message" class="message-box"></div></div>
+                <div id="profile-screen" class="screen">                    <h2>👤 Профиль</h2>
+                    <div class="profile-avatar" id="profile-avatar">${player.avatar}</div>
+                    <div class="avatar-selector">
+                        <span class="avatar-option ${player.avatar==='🧟'?'selected':''}" data-avatar="🧟">🧟</span>
+                        <span class="avatar-option ${player.avatar==='🧑'?'selected':''}" data-avatar="🧑">🧑</span>
+                        <span class="avatar-option ${player.avatar==='👨‍'?'selected':''}" data-avatar="👨‍">‍🚀</span>
+                    </div>
+                    <div class="edit-name"><input type="text" id="new-name" placeholder="Новое имя" class="trade-input"><button id="change-name-btn" class="trade-button" style="width:auto;">✅</button></div>
+                    <div class="stat-row"><span>Имя:</span><span>${player.name}</span></div>
+                    <div class="stat-row"><span>Уровень:</span><span>${player.level}</span></div>
+                    <div class="stat-row"><span>Опыт:</span><span>${player.exp}</span></div>
+                    <div class="stat-row"><span>Убийств:</span><span>${player.totalKills}</span></div>
+                    <div class="stat-row"><span>Max волн:</span><span>${player.maxWave}</span></div>
+                    <div class="stat-row"><span>Время:</span><span>${Math.floor(player.playTime/60)} мин</span></div>
+                    <button id="daily-bonus-btn" class="trade-button">🎁 Бонус (+100)</button>
+                    ${player.isTester?'<p style="color:gold;text-align:center;margin:15px 0;">✨ Тестерские привилегии</p>':''}
+                    <div class="stat-row"><span>ID:</span><span style="font-size:10px;word-break:break-all;">${player.id}</span></div>
+                    <div class="version-info">Версия: ${VERSION}</div>
+                    <div class="glass-panel"><h3>🏅 Достижения</h3><div id="achievements-list"></div></div>
+                    <div class="glass-panel"><h3>📅 Задания</h3><div id="daily-tasks-list"></div><button id="claim-daily-reward" class="trade-button">🎁 Награда (5000)</button></div>
+                </div>
+                <div id="battle-screen" class="screen"><button class="back-btn" id="back-to-main">⬅ Назад</button><div id="battle-content"></div></div>
+            </div>
+        `;
+        
+        const el = {
+            money:document.getElementById('money'),
+            rainbow:document.getElementById('rainbow-money'),
+            topName:document.getElementById('player-name'),
+            tabs:document.querySelectorAll('.tab-btn'),
+            screens:document.querySelectorAll('.screen'),
+            battleContent:document.getElementById('battle-content'),
+            backBtn:document.getElementById('back-to-main'),
+            weaponShop:document.getElementById('weapon-shop'),
+            limitedShop:document.getElementById('limited-shop'),
+            inventory:document.getElementById('inventory-list'),
+            unitsShop:document.getElementById('units-shop'),
+            promoInput:document.getElementById('promo-code'),
+            promoApply:document.getElementById('apply-promo'),
+            promoMsg:document.getElementById('promo-message'),
+            avatars:document.querySelectorAll('.avatar-option'),
+            newName:document.getElementById('new-name'),
+            changeName:document.getElementById('change-name-btn'),
+            expBar:document.getElementById('exp-bar'),
+            prestigeBtn:document.getElementById('prestige-btn'),
+            dailyBonusBtn:document.getElementById('daily-bonus-btn'),
+            fullscreenBtn:document.getElementById('fullscreen-btn'),
+            dailyTasksList:document.getElementById('daily-tasks-list'),
+            claimDailyBtn:document.getElementById('claim-daily-reward'),
+            achievementsList:document.getElementById('achievements-list'),            profileAvatar:document.getElementById('profile-avatar')
+        };
+        
+        function updateUI() {
+            if(el.money) el.money.textContent = player.money;
+            if(el.rainbow) el.rainbow.textContent = player.rainbowMoney;
+            if(el.topName) el.topName.textContent = player.name;
+            if(el.expBar) el.expBar.style.width = ((player.exp/(player.level*100))*100) + '%';
+            if(el.profileAvatar) el.profileAvatar.textContent = player.avatar;
+            renderProfile();
+        }
+        
+        function switchTab(id) {
+            el.tabs.forEach(b=>b.classList.remove('active'));
+            const ab = document.querySelector('[data-tab="'+id+'"]');
+            if(ab) ab.classList.add('active');
+            el.screens.forEach(s=>s.classList.remove('active'));
+            const t = document.getElementById(id+'-screen');
+            if(t) t.classList.add('active');
+            if(id==='shop') renderShop();
+            if(id==='limited') renderLimited();
+            if(id==='inventory') renderInventory();
+            if(id==='units') renderUnits();
+            if(id==='profile') renderProfile();
+        }
+        
+        function renderShop() {
+            if(!el.weaponShop) return;
+            el.weaponShop.innerHTML = '';
+            WEAPONS.filter(w=>!w.limited&&w.priceZ>0).forEach(w=>{
+                const owned = player.weapons.some(wp=>wp.name===w.name);
+                const price = (player.isTester&&w.priceZ>0)?0:w.priceZ;
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = '<strong>'+w.name+'</strong><br>💰 '+price+'<br>⚔️ '+w.damage+'<br>🔧 '+(w.maxDur===-1?'∞':w.maxDur)+'<br>⏱️ '+(w.cd/1000)+'с<br><button '+(owned?'disabled':'')+' data-weapon="'+w.name+'" data-price="'+price+'" data-cur="z">'+(owned?'Куплено':'Купить')+'</button>';
+                el.weaponShop.appendChild(card);
+            });
+        }
+        
+        function renderLimited() {
+            if(!el.limitedShop) return;
+            el.limitedShop.innerHTML = '';
+            WEAPONS.filter(w=>w.limited).forEach(w=>{
+                const owned = player.weapons.some(wp=>wp.name===w.name);
+                const price = (player.isTester&&w.priceR>0)?0:w.priceR;
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = '<strong>'+w.name+'</strong><br>🌈 '+price+'<br>⚔️ '+w.damage+'<br>🔧 '+w.maxDur+'<br>⏱️ '+(w.cd/1000)+'с<br><button '+(owned?'disabled':'')+' data-weapon="'+w.name+'" data-price="'+price+'" data-cur="r">'+(owned?'Куплено':'Купить')+'</button>';
+                el.limitedShop.appendChild(card);
+            });        }
+        
+        function renderUnits() {
+            if(!el.unitsShop) return;
+            el.unitsShop.innerHTML = '';
+            UNITS.forEach(u=>{
+                const owned = player.units.includes(u.name);
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = '<strong>'+u.name+'</strong>'+
+                    '<div class="unit-info">'+u.desc+'</div>'+
+                    '<div class="unit-price">'+(u.priceZ>0?'💰 '+u.priceZ:'')+' '+(u.priceR>0?'🌈 '+u.priceR:'')+'</div>'+
+                    '<button '+(owned?'disabled':'')+' data-unit="'+u.name+'" data-pz="'+u.priceZ+'" data-pr="'+u.priceR+'">'+(owned?'Куплено':'Купить')+'</button>';
+                el.unitsShop.appendChild(card);
+            });
+        }
+        
+        function renderInventory() {
+            if(!el.inventory) return;
+            el.inventory.innerHTML = '';
+            player.weapons.forEach(w=>{
+                const wd = WEAPONS.find(x=>x.name===w.name)||TESTER_HAMMER;
+                if(!wd) return;
+                const dur = wd.maxDur===-1?'∞':Math.floor((w.durability/wd.maxDur)*100)+'%';
+                const dn = player.renamedWeapons[w.name]||w.name;
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                
+                let durabilityBar = '';
+                if(wd.maxDur !== -1) {
+                    const durPercent = (w.durability/wd.maxDur)*100;
+                    let durClass = '';
+                    if(durPercent < 30) durClass = 'low';
+                    else if(durPercent < 60) durClass = 'medium';
+                    durabilityBar = '<div class="durability-bar"><div class="durability-fill '+durClass+'" style="width:'+durPercent+'%"></div></div>';
+                }
+                
+                card.innerHTML = '<strong>'+dn+(w.skin?' ✨':'')+'</strong>'+durabilityBar+'🔧 '+dur+'<br>⏱️ '+(wd.cd/1000)+'с<br>'+(wd.maxDur!==-1&&w.durability<wd.maxDur?'<button class="repair-btn" data-repair="'+w.name+'">🔧 Починить (1000💰)</button>':'')+'<button data-rename="'+w.name+'">✏️ Переименовать (10🌈)</button>';
+                el.inventory.appendChild(card);
+            });
+        }
+        
+        function renderProfile() {
+            if(el.dailyTasksList) {
+                const tasks = [{id:'kill20',desc:'Убить 20 зомби',target:20,type:'kill'},{id:'earn500',desc:'Заработать 500 монет',target:500,type:'money'},{id:'waves5',desc:'Пройти 5 волн',target:5,type:'wave'}];
+                if(!player.dailyTasks||player.dailyTasks.length===0) {
+                    player.dailyTasks = tasks.map(t=>({...t,progress:0,completed:false}));
+                    player.lastDailyReset = Date.now();
+                }
+                el.dailyTasksList.innerHTML = player.dailyTasks.map(t=>'<div class="daily-task-item'+(t.completed?' completed':'')+'"><span>'+t.desc+'</span><span>'+t.progress+'/'+t.target+(t.completed?' ✅':'')+'</span></div>').join('');            }
+            if(el.achievementsList) {
+                const names = {kill100:'100 убийств',kill500:'500 убийств',kill1000:'1000 убийств',wave50:'50 волн',prestige1:'Престиж 1'};
+                el.achievementsList.innerHTML = player.achievements.map(id=>'<span class="achievement-badge">🏅 '+(names[id]||id)+'</span>').join(' ')||'<p style="text-align:center;color:#8bc34a;">Нет достижений</p>';
+            }
+        }
+        
+        // Events
+        document.addEventListener('click',function(e){
+            const btn = e.target.closest('button');
+            if(!btn) return;
+            
+            if(btn.dataset.weapon) {
+                const w = WEAPONS.find(x=>x.name===btn.dataset.weapon);
+                if(!w) return;
+                const price = parseInt(btn.dataset.price);
+                if(btn.dataset.cur==='z') {
+                    if(player.money>=price&&!player.weapons.some(wp=>wp.name===w.name)) {
+                        player.money-=price;
+                        player.weapons.push({name:w.name,durability:w.maxDur,skin:null});
+                        save();updateUI();renderShop();renderInventory();
+                        Logger.add('BUY',w.name);notify('✅ Куплено: '+w.name,'success');
+                    } else notify('❌ Недостаточно средств или уже куплено','error');
+                } else if(btn.dataset.cur==='r') {
+                    if(player.rainbowMoney>=price&&!player.weapons.some(wp=>wp.name===w.name)) {
+                        player.rainbowMoney-=price;
+                        player.weapons.push({name:w.name,durability:w.maxDur,skin:null});
+                        save();updateUI();renderLimited();renderInventory();
+                        Logger.add('BUY_R',w.name);notify('✅ Куплено: '+w.name,'success');
+                    } else notify('❌ Недостаточно Rainbow','error');
+                }
+            }
+            
+            if(btn.dataset.unit) {
+                const u = UNITS.find(x=>x.name===btn.dataset.unit);
+                if(!u) return;
+                if(!player.units.includes(u.name)) {
+                    if(u.priceZ>0&&player.money>=u.priceZ) {
+                        player.money-=u.priceZ;player.units.push(u.name);save();renderUnits();
+                        Logger.add('BUY_UNIT',u.name);notify('✅ Куплено: '+u.name,'success');
+                    } else if(u.priceR>0&&player.rainbowMoney>=u.priceR) {
+                        player.rainbowMoney-=u.priceR;player.units.push(u.name);save();renderUnits();
+                        Logger.add('BUY_UNIT_R',u.name);notify('✅ Куплено: '+u.name,'success');
+                    } else notify('❌ Недостаточно средств','error');
+                }
+            }
+            
+            if(btn.dataset.repair) {
+                const w = player.weapons.find(x=>x.name===btn.dataset.repair);
+                const wd = WEAPONS.find(x=>x.name===w.name);                if(w&&wd&&wd.maxDur!==-1&&w.durability<wd.maxDur&&player.money>=1000) {
+                    player.money-=1000;w.durability=wd.maxDur;save();updateUI();renderInventory();
+                    Logger.add('REPAIR',w.name);notify('✅ Починено!','success');
+                } else notify('❌ Недостаточно денег','error');
+            }
+            
+            if(btn.dataset.rename) {
+                const nn = prompt('Новое название (10🌈):',btn.dataset.rename);
+                if(nn&&player.rainbowMoney>=10) {
+                    player.rainbowMoney-=10;player.renamedWeapons[btn.dataset.rename]=nn;save();renderInventory();
+                    notify('✅ Переименовано!','success');
+                } else notify('❌ Нужно 10 Rainbow','error');
+            }
+            
+            if(btn.id==='apply-promo') {
+                const code = el.promoInput.value.trim().toUpperCase();
+                const promo = PROMOS[code];
+                if(!promo) { el.promoMsg.textContent='❌ Неверный код';notify('❌ Неверный код','error');return; }
+                if(player.usedPromos.includes(code)) { el.promoMsg.textContent='⚠️ Уже использован';notify('⚠️ Уже использован','error');return; }
+                if(promo.type==='money') { player.money+=promo.val;el.promoMsg.textContent='✅ +'+promo.val+' монет'; }
+                else if(promo.type==='rainbow') { player.rainbowMoney+=promo.val;el.promoMsg.textContent='✅ +'+promo.val+' Rainbow'; }
+                else if(promo.type==='weapon') {
+                    const w = WEAPONS.find(x=>x.name===promo.val);
+                    if(w&&!player.weapons.some(wp=>wp.name===w.name)) { player.weapons.push({name:w.name,durability:w.maxDur,skin:null});el.promoMsg.textContent='✅ Получено: '+w.name; }
+                    else el.promoMsg.textContent='⚠️ Уже есть';
+                }
+                player.usedPromos.push(code);save();updateUI();
+                Logger.add('PROMO',code);notify('✅ Промокод активирован!','success');
+            }
+            
+            if(btn.id==='prestige-btn'&&player.level>=10) {
+                player.level=1;player.exp=0;player.prestigeBonus++;save();updateUI();
+                notify('🌟 Престиж! +10% урона','success');
+                Logger.add('PRESTIGE',player.prestigeBonus);
+            }
+            
+            if(btn.id==='daily-bonus-btn') {
+                if(Date.now()-player.lastDailyBonus>86400000) {
+                    player.money+=100;player.lastDailyBonus=Date.now();save();updateUI();
+                    notify('+100 монет!','success');
+                } else notify('Уже получено сегодня','error');
+            }
+            
+            if(btn.id==='claim-daily-reward') {
+                const all = player.dailyTasks&&player.dailyTasks.every(t=>t.completed);
+                if(all) { player.money+=5000;player.dailyTasks=[];save();updateUI();notify('✅ +5000 монет!','success'); }
+                else notify('❌ Выполните все задания','error');
+            }
+            
+            if(btn.id==='change-name-btn'&&el.newName.value.trim()) {                player.name=el.newName.value.trim();save();updateUI();el.newName.value='';
+                notify('✅ Имя изменено!','success');
+            }
+            
+            if(btn.dataset.mode) startBattle(btn.dataset.mode);
+            if(btn.id==='back-to-main'||btn.id==='back-from-battle') exitBattle();
+            if(btn.id==='fullscreen-btn') document.documentElement.requestFullscreen?.();
+        });
+        
+        el.avatars.forEach(opt=>{
+            opt.addEventListener('click',()=>{
+                player.avatar=opt.dataset.avatar;save();updateUI();
+                el.avatars.forEach(o=>o.classList.toggle('selected',o.dataset.avatar===player.avatar));
+                notify('✅ Аватар изменён!','success');
+            });
+        });
+        
+        el.tabs.forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+        
+        renderShop();renderLimited();renderInventory();renderUnits();renderProfile();updateUI();
+        
+        // ========== BATTLE SYSTEM ==========
+        function startBattle(mode) {
+            battle.mode = mode;
+            battle.curIdx = 0;
+            battle.selWeapon = player.weapons[0]?.name || 'Нож кухонный';
+            clearAllCooldowns();
+            
+            if(mode === 'kill25') {
+                battle.zombies = [];
+                for(let i=0; i<25; i++) {
+                    const z = ZOMBIES[Math.floor(Math.random() * Math.min(3, ZOMBIES.length))];
+                    battle.zombies.push({...z, curHp: z.hp});
+                }
+            } else if(mode === 'farm') {
+                if(player.money < 15000) {
+                    notify('❌ Нужно 15000 монет для фарма','error');
+                    return;
+                }
+                player.money -= 15000;
+                save();
+                updateUI();
+                battle.zombies = [];
+                for(let i=0; i<100; i++) {
+                    battle.zombies.push({...ZOMBIES[0], curHp: ZOMBIES[0].hp});
+                }
+            } else if(mode === 'randomZombie') {
+                const z = ZOMBIES[Math.floor(Math.random() * ZOMBIES.length)];
+                battle.zombies = [{...z, curHp: z.hp}];
+            } else if(mode === '60seconds') {                battle.timeLeft = 60;
+                battle.zombies = [{...ZOMBIES[0], curHp: ZOMBIES[0].hp}];
+                if(battle.timerInterval) clearInterval(battle.timerInterval);
+                battle.timerInterval = setInterval(() => {
+                    battle.timeLeft--;
+                    if(battle.timeLeft <= 0) {
+                        clearInterval(battle.timerInterval);
+                        exitBattle();
+                        notify('⏱️ Время вышло!','error');
+                    } else {
+                        renderBattle();
+                    }
+                }, 1000);
+            } else {
+                battle.zombies = [{...ZOMBIES[0], curHp: ZOMBIES[0].hp}];
+            }
+            
+            switchTab('battle');
+            renderBattle();
+            Logger.add('BATTLE',mode);
+        }
+        
+        function renderBattle() {
+            if(!battle.mode || !el.battleContent) return;
+            
+            const z = battle.zombies[battle.curIdx];
+            if(!z) {
+                el.battleContent.innerHTML = '<h2 style="text-align:center;color:#8bc34a;margin:40px 0;">🎉 ПОБЕДА!</h2><button class="back-btn" id="back-from-battle" style="display:block;margin:0 auto;">В меню</button>';
+                return;
+            }
+            
+            const weps = player.weapons.map(w=>w.name);
+            
+            el.battleContent.innerHTML = `
+                ${battle.mode==='60seconds'?'<div class="battle-timer">⏱️ '+battle.timeLeft+'с</div>':''}
+                <div class="zombie-stats" id="current-zombie">
+                    <h2>${z.name}</h2>
+                    <p>❤️ ${z.curHp}/${z.hp} HP</p>
+                    <p>💀 Урон: ${z.dmg}</p>
+                    <p>🏆 Награда: ${z.reward}💰</p>
+                </div>
+                <div class="weapon-selector">
+                    ${weps.map(n=>{
+                        const w = WEAPONS.find(x=>x.name===n)||TESTER_HAMMER;
+                        const s = n===battle.selWeapon?'selected':'';
+                        const onCd = isOnCooldown(n);
+                        return '<div class="weapon-option '+s+(onCd?' cooldown':'')+'" data-wep="'+n+'">'+
+                            '<div class="cooldown-overlay" style="height:0%"></div>'+
+                            '<div class="cooldown-text">'+(onCd?'0.0с':'')+'</div>'+
+                            '<div>'+n+'</div>'+                            '<div style="font-size:12px;margin-top:5px;">⚔️ '+w.damage+' | ⏱️ '+(w.cd/1000)+'с</div>'+
+                            '</div>';
+                    }).join('')}
+                </div>
+                <button class="attack-btn" id="attack-btn">⚔️ АТАКА</button>
+            `;
+            
+            document.querySelectorAll('.weapon-option').forEach(e=>{
+                e.addEventListener('click',function(){
+                    if(!this.classList.contains('cooldown')) {
+                        battle.selWeapon = this.dataset.wep;
+                        renderBattle();
+                    }
+                });
+            });
+            
+            document.getElementById('attack-btn')?.addEventListener('click',()=>{
+                const wd = WEAPONS.find(w=>w.name===battle.selWeapon)||TESTER_HAMMER;
+                if(!wd) return;
+                
+                if(isOnCooldown(battle.selWeapon)) {
+                    notify('⏱️ Оружие перезаряжается!','error');
+                    return;
+                }
+                
+                const z = battle.zombies[battle.curIdx];
+                if(!z) return;
+                
+                const bonus = 1 + (player.prestigeBonus * 0.1);
+                const damage = Math.floor(wd.damage * bonus);
+                z.curHp -= damage;
+                
+                if(wd.cd > 0) {
+                    startCooldown(battle.selWeapon, wd.cd, () => {
+                        renderBattle();
+                    });
+                }
+                
+                const playerWeapon = player.weapons.find(w=>w.name===battle.selWeapon);
+                if(playerWeapon && wd.maxDur !== -1) {
+                    playerWeapon.durability--;
+                    if(playerWeapon.durability <= 0) {
+                        player.weapons = player.weapons.filter(w=>w.name!==battle.selWeapon);
+                        if(player.weapons.length === 0) {
+                            player.weapons.push({name:'Нож кухонный',durability:-1,skin:null});
+                        }
+                        battle.selWeapon = player.weapons[0]?.name || 'Нож кухонный';
+                        notify('⚠️ Оружие сломалось!','error');
+                    }
+                }                
+                const zd = document.getElementById('current-zombie');
+                if(zd) {
+                    zd.style.animation = 'none';
+                    zd.offsetHeight;
+                    zd.style.animation = 'shake 0.2s';
+                }
+                
+                if(z.curHp <= 0) {
+                    player.money += z.reward;
+                    player.totalKills++;
+                    
+                    player.dailyTasks.forEach(t=>{
+                        if(!t.completed && t.type==='kill') {
+                            t.progress = Math.min(t.target, t.progress + 1);
+                            if(t.progress >= t.target) t.completed = true;
+                        }
+                        if(!t.completed && t.type==='money') {
+                            t.progress = Math.min(t.target, t.progress + z.reward);
+                            if(t.progress >= t.target) t.completed = true;
+                        }
+                    });
+                    
+                    save();
+                    updateUI();
+                    
+                    battle.curIdx++;
+                    if(battle.curIdx >= battle.zombies.length) {
+                        if(battle.mode === 'randomZombie') {
+                            const nz = ZOMBIES[Math.floor(Math.random() * ZOMBIES.length)];
+                            battle.zombies.push({...nz, curHp: nz.hp});
+                        } else if(battle.mode === '60seconds') {
+                            battle.zombies.push({...ZOMBIES[0], curHp: ZOMBIES[0].hp});
+                        }
+                    }
+                }
+                
+                renderBattle();
+            });
+        }
+        
+        function exitBattle() {
+            clearAllCooldowns();
+            if(battle.timerInterval) {
+                clearInterval(battle.timerInterval);
+                battle.timerInterval = null;
+            }
+            battle.mode = null;
+            switchTab('main');
+        }    }
+    
+    // ========== ADMIN ==========
+    function renderAdmin() {
+        adminDiv.innerHTML=`<div id="top-bar"><span>🔧 Админ v${VERSION}</span><button id="back-to-game">В игру</button></div><div id="screen" style="padding:16px;"><div class="db-status ${adminData.dbEnabled?'online':'offline'}"><div class="db-indicator"></div><span>База: ${adminData.dbEnabled?'ВКЛ':'ВЫКЛ'}</span><button id="toggle-db" style="margin-left:auto;padding:6px 15px;border-radius:20px;background:${adminData.dbEnabled?'#7f4f4f':'#4f7f4f'};color:#fff;border:none;cursor:pointer;">${adminData.dbEnabled?'Выкл':'Вкл'}</button></div><div class="glass-panel"><h3>📊 База данных</h3><div class="export-import-buttons"><button id="export-db-btn" class="trade-button success">📤 Экспорт</button><button id="import-db-btn" class="trade-button warning">📥 Импорт</button></div><input type="file" id="import-file" class="hidden-file-input" accept=".json"></div><div class="glass-panel"><h3>📋 Игроки (${getAllPlayers().length})</h3><button id="refresh-players" class="trade-button" style="padding:10px;margin-bottom:12px;">🔄 Обновить</button><div id="all-players-list" style="max-height:200px;overflow-y:auto;"></div></div><div class="glass-panel"><h3>🔍 Управление</h3><div class="admin-row"><input type="text" id="admin-id" placeholder="ID игрока" class="trade-input"><button id="load-stats" class="trade-button" style="width:auto;padding:10px 20px;">Загрузить</button></div><div id="admin-stats" class="message-box"></div><div class="admin-row"><button id="ban-user" class="trade-button danger">⛔ Бан</button><button id="unban-user" class="trade-button success">✅ Разбан</button></div><div class="admin-row"><input type="number" id="give-zombie" placeholder="Zombie Coins" class="trade-input"><button id="give-zombie-btn" class="trade-button" style="width:auto;">Выдать</button></div><div class="admin-row"><input type="number" id="give-rainbow" placeholder="Rainbow Coins" class="trade-input"><button id="give-rainbow-btn" class="trade-button" style="width:auto;">Выдать</button></div><div class="admin-row"><button id="make-tester" class="trade-button success">👑 Тестер</button><button id="remove-tester" class="trade-button danger">❌ Снять</button></div><div class="admin-row"><input type="text" id="give-weapon" placeholder="Оружие" class="trade-input"><button id="give-weapon-btn" class="trade-button" style="width:auto;">Выдать</button></div><div class="admin-row"><button id="reset-player" class="trade-button warning">🔄 Сброс</button><button id="delete-player" class="trade-button danger">🗑️ Удалить</button></div></div><div class="glass-panel"><h3>📜 Логи</h3><button id="refresh-logs" class="trade-button" style="padding:10px;margin-bottom:12px;">🔄</button><button id="clear-logs" class="trade-button danger" style="padding:10px;">🗑️</button><div id="logs-list" class="message-box" style="max-height:300px;"></div></div></div>`;
+        
+        document.getElementById('back-to-game').addEventListener('click',()=>{window.location.href=window.location.pathname;});
+        document.getElementById('toggle-db').addEventListener('click',()=>{adminData.dbEnabled=!adminData.dbEnabled;saveAdmin();renderAdmin();});
+        document.getElementById('export-db-btn').addEventListener('click',exportDB);
+        document.getElementById('import-db-btn').addEventListener('click',()=>document.getElementById('import-file').click());
+        document.getElementById('import-file').addEventListener('change',e=>{if(e.target.files[0])importDB(e.target.files[0]);});
+        
+        function refreshPlayers() {
+            const list=document.getElementById('all-players-list');
+            const players=getAllPlayers();
+            list.innerHTML=players.map(p=>'<div class="player-list-item" data-id="'+p.id+'"><span>'+p.avatar+' '+p.name+'</span><span style="font-size:10px;">'+p.id.substring(0,8)+'...</span></div>').join('')||'<p style="text-align:center;color:#8bc34a;">Нет игроков</p>';
+            list.querySelectorAll('.player-list-item').forEach(item=>{item.addEventListener('click',()=>{document.getElementById('admin-id').value=item.dataset.id;document.getElementById('load-stats').click();});});
+        }
+        refreshPlayers();
+        document.getElementById('refresh-players').addEventListener('click',refreshPlayers);
+        
+        let target=null,key=null;
+        
+        document.getElementById('load-stats').addEventListener('click',()=>{
+            const id=document.getElementById('admin-id').value.trim();
+            const r=getPlayerById(id);
+            if(r) {
+                target=r.data;key=r.key;
+                document.getElementById('admin-stats').innerHTML='<strong>Игрок:</strong> '+target.name+'<br><strong>💰 Zombie:</strong> '+target.money+'<br><strong>🌈 Rainbow:</strong> '+target.rainbowMoney+'<br><strong>📊 Уровень:</strong> '+target.level+'<br><strong>⚔️ Убийств:</strong> '+target.totalKills+'<br><strong>👑 Тестер:</strong> '+(target.isTester?'✅':'❌')+'<br><strong>⛔ Бан:</strong> '+(target.isBanned?'✅':'❌');
+                Logger.add('ADMIN_LOAD',id);notify('✅ Игрок загружен','success');
+            } else {
+                document.getElementById('admin-stats').innerHTML='❌ Игрок не найден';
+                notify('❌ Игрок не найден','error');
+            }
+        });
+        
+        function saveTarget() {
+            if(target&&key) {
+                try {
+                    localStorage.setItem(key,JSON.stringify(target));
+                    localStorage.setItem(PLAYERS_PREFIX+target.id,JSON.stringify(target));
+                    refreshPlayers();
+                    Logger.add('ADMIN_SAVE',target.id);
+                    return true;
+                } catch(e) { notify('❌ Ошибка сохранения','error');return false; }
+            }
+            return false;
+        }
+        
+        document.getElementById('ban-user').addEventListener('click',()=>{            if(target) {
+                target.isBanned=true;
+                if(!adminData.bannedIds.includes(target.id)) adminData.bannedIds.push(target.id);
+                saveAdmin();
+                if(saveTarget()) { notify('✅ Забанен','success');Logger.add('ADMIN_BAN',target.id); }
+            } else notify('❌ Загрузите игрока','error');
+        });
+        
+        document.getElementById('unban-user').addEventListener('click',()=>{
+            if(target) {
+                target.isBanned=false;
+                adminData.bannedIds=adminData.bannedIds.filter(id=>id!==target.id);
+                saveAdmin();
+                if(saveTarget()) { notify('✅ Разбанен','success');Logger.add('ADMIN_UNBAN',target.id); }
+            } else notify('❌ Загрузите игрока','error');
+        });
+        
+        document.getElementById('give-zombie-btn').addEventListener('click',()=>{
+            const a=parseInt(document.getElementById('give-zombie').value);
+            if(target&&a>0) {
+                target.money+=a;
+                if(saveTarget()) { notify('✅ Выдано '+a+' Zombie Coins','success');Logger.add('ADMIN_GIVE_Z',a+' to '+target.id); }
+            } else notify('❌ Введите сумму','error');
+        });
+        
+        document.getElementById('give-rainbow-btn').addEventListener('click',()=>{
+            const a=parseInt(document.getElementById('give-rainbow').value);
+            if(target&&a>0) {
+                target.rainbowMoney+=a;
+                if(saveTarget()) { notify('✅ Выдано '+a+' Rainbow Coins','success');Logger.add('ADMIN_GIVE_R',a+' to '+target.id); }
+            } else notify('❌ Введите сумму','error');
+        });
+        
+        document.getElementById('make-tester').addEventListener('click',()=>{
+            if(target) {
+                if(!adminData.testers.includes(target.id)) adminData.testers.push(target.id);
+                target.isTester=true;
+                if(!target.weapons.some(w=>w.name==='Молот тестера')) { target.weapons.push({name:'Молот тестера',durability:-1,skin:null}); }
+                saveAdmin();
+                if(saveTarget()) { notify('✅ Тестер добавлен','success');Logger.add('ADMIN_TESTER',target.id); }
+            } else notify('❌ Загрузите игрока','error');
+        });
+        
+        document.getElementById('remove-tester').addEventListener('click',()=>{
+            if(target) {
+                adminData.testers=adminData.testers.filter(id=>id!==target.id);
+                target.isTester=false;
+                target.weapons=target.weapons.filter(w=>w.name!=='Молот тестера');
+                saveAdmin();
+                if(saveTarget()) { notify('✅ Тестер снят','success');Logger.add('ADMIN_REMOVE_TESTER',target.id); }            } else notify('❌ Загрузите игрока','error');
+        });
+        
+        document.getElementById('give-weapon-btn').addEventListener('click',()=>{
+            const n=document.getElementById('give-weapon').value.trim();
+            if(target&&n) {
+                const w=WEAPONS.find(x=>x.name.toLowerCase()===n.toLowerCase());
+                if(w&&!target.weapons.some(wp=>wp.name.toLowerCase()===w.name.toLowerCase())) {
+                    target.weapons.push({name:w.name,durability:w.maxDur,skin:null});
+                    if(saveTarget()) { notify('✅ Выдано: '+w.name,'success');Logger.add('ADMIN_GIVE_WEP',w.name+' to '+target.id); }
+                } else notify('❌ Не найдено или уже есть','error');
+            } else notify('❌ Введите название','error');
+        });
+        
+        document.getElementById('reset-player').addEventListener('click',()=>{
+            if(target&&confirm('Сбросить игрока?')) {
+                const D={id:target.id,name:'Gin Zar',avatar:'🧟',money:1000,rainbowMoney:0,weapons:[{name:'Нож кухонный',durability:-1,skin:null}],units:[],level:1,exp:0,createdAt:target.createdAt};
+                target={...D};
+                if(saveTarget()) { notify('✅ Сброшен','success');Logger.add('ADMIN_RESET',target.id); }
+            }
+        });
+        
+        document.getElementById('delete-player').addEventListener('click',()=>{
+            if(target&&key&&confirm('УДАЛИТЬ навсегда?')) {
+                try {
+                    localStorage.removeItem(key);
+                    localStorage.removeItem(PLAYERS_PREFIX+target.id);
+                    adminData.bannedIds=adminData.bannedIds.filter(id=>id!==target.id);
+                    adminData.testers=adminData.testers.filter(id=>id!==target.id);
+                    saveAdmin();
+                    target=null;key=null;
+                    document.getElementById('admin-stats').innerHTML='✅ Удалён';
+                    refreshPlayers();
+                    notify('✅ Удалён','success');
+                    Logger.add('ADMIN_DELETE',target?.id||'?');
+                } catch(e) { notify('❌ Ошибка удаления','error'); }
+            }
+        });
+        
+        document.getElementById('refresh-logs').addEventListener('click',()=>{Logger.init();Logger.render(document.getElementById('logs-list'));});
+        document.getElementById('clear-logs').addEventListener('click',()=>{if(confirm('Очистить все логи?')){Logger.clear();Logger.render(document.getElementById('logs-list'));notify('✅ Логи очищены','success');}});
+        
+        Logger.render(document.getElementById('logs-list'));
+    }
+}
+
+// Start - prevent multiple calls
+if(!window.gameInitialized) {
+    window.onload = startGame;
+}</script>
+</body>
+</html>
